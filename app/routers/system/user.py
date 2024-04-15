@@ -1,14 +1,20 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
 
-from middlewares.oauth import get_current_user, get_current_active_user
-from models.system import User
+from middlewares.oauth import get_current_active_user
+from models import ResponseData
+from models.system.schemas import User
+from services.system.user import UserService
 
 router = APIRouter()
 
 
-@router.get("/users", tags=["users"])
-async def read_users():
-    return [{"username": "Rick"}, {"username": "Morty"}]
+@router.get("/users", tags=["users"], response_model=ResponseData[User])
+async def read_users(user_service: UserService = Depends()):
+    return ResponseData.success(
+        user_service.get_by_id(1)
+    )
 
 
 @router.get("/users/me", tags=["users"])

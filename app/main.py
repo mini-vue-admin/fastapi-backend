@@ -12,7 +12,7 @@ from middlewares.exception_handlers import request_validation_exception_handler,
     unhandled_exception_handler
 from middlewares.log_request import log_request_middleware
 from models import ResponseData
-from routers.system import users
+from routers.system import user
 
 app = FastAPI(root_path="/v1")
 
@@ -30,7 +30,7 @@ app.add_middleware(
 
 # routers
 app.include_router(oauth.router)
-app.include_router(users.router)
+app.include_router(user.router)
 
 
 @app.get("/info", response_model=ResponseData[Settings])
