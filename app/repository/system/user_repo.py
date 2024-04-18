@@ -1,9 +1,10 @@
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, desc
 
 from middlewares.transactional import db
 from models import PageData
-from models.system.models import User
+from models.system import schemas
+from models.system.models import SysUser
 
 
 # 假设我们已经有了一个Base和User类，如下所示：
@@ -14,26 +15,26 @@ from models.system.models import User
 
 @db
 def get_by_id(user_id, db):
-    return db.query(User).filter(User.id == user_id).first()
+    return db.query(SysUser).filter(SysUser.id == user_id).first()
 
 
 # CRUD操作: 创建
 @db
 def create(db, user_data, ):
-    new_user = User(**user_data)
+    new_user = SysUser(**user_data)
     db.add(new_user)
     return new_user
 
 
 @db
-def list(db) -> User:
-    return db.query(User).all()
+def list(db) -> SysUser:
+    return db.query(SysUser).all()
 
 
 @db
 # CRUD操作: 更新
 def update(user_id, update_data, db):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(SysUser).filter(SysUser.id == user_id).first()
     if user:
         for key, value in update_data.items():
             setattr(user, key, value)
@@ -44,7 +45,7 @@ def update(user_id, update_data, db):
 @db
 # CRUD操作: 删除
 def delete(db, user_id):
-    user = db.query(User).filter(User.id == user_id).first()
+    user = db.query(SysUser).filter(SysUser.id == user_id).first()
     if user:
         db.delete(user)
         db.commit()
@@ -55,7 +56,12 @@ def delete(db, user_id):
 
 @db
 # 分页查询方法
-def page(db, page, per_page):
-    total_count = db.query(func.count(User.id)).scalar()
-    items = db.query(User).paginate(page, per_page, False).items
-    return PageData(list=items, total=total_count, pageNum=page, pageSize=per_page)
+def page(user: schemas.SysUser, page: PageData, db):
+    offset = (page.page_num - 1) * page.page_size
+    total_count = db.query(func.count(SysUser.id)).scalar()
+    items = (db.query(SysUser)
+             .filter()
+             .order_by(desc(SysUser.create_time))
+             .offset(offset)
+             .limit(page.page_size))
+    return PageData(list=items, total=total_count, pageNum=page.page_num, pageSize=page.page_size)

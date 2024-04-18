@@ -12,9 +12,9 @@ from middlewares.exception_handlers import request_validation_exception_handler,
     unhandled_exception_handler
 from middlewares.log_request import log_request_middleware
 from models import ResponseData
-from routers.system import user
+from routers import system
 
-app = FastAPI(root_path="/v1")
+app = FastAPI(root_path="/api/v1")
 
 # middlewares
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -30,7 +30,7 @@ app.add_middleware(
 
 # routers
 app.include_router(oauth.router)
-app.include_router(user.router)
+app.include_router(system.router, prefix="/system")
 
 
 @app.get("/info", response_model=ResponseData[Settings])

@@ -5,8 +5,8 @@ from fastapi import Depends, APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
-from models.system.schemas import User
-from services.system.user import UserService
+from models.system.schemas import SysUser
+from services.system import user_service
 from utils.encrypt import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, decrypt_access_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -21,14 +21,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: SysUser = Depends(get_current_user)):
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
 def fake_decode_token(token):
-    return User(
+    return SysUser(
         username=token + "fakedecoded", email="john@example.com", full_name="John Doe"
     )
 
@@ -37,7 +37,7 @@ router = APIRouter()
 
 
 @router.post("/token")
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), user_service: UserService = Depends()):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = user_service.authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(

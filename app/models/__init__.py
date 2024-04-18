@@ -21,9 +21,9 @@ class ResponseData(BaseModel, Generic[T]):
 
 
 class PageData(BaseModel, Generic[T]):
-    model_config = ConfigDict(alias_generator=to_camel)
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
-    list: List[T]
-    total: int
-    page_num: int
-    page_size: int
+    list: List[T] = []
+    total: int = 0
+    page_num: int = 1
+    page_size: int = 10
