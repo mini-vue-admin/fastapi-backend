@@ -1,4 +1,7 @@
-from sqlalchemy import func, desc
+from typing import List
+
+from sqlalchemy import func, asc
+from sqlalchemy.orm import Session
 
 from middlewares.transactional import db
 from models import PageData
@@ -10,15 +13,14 @@ from utils.common import not_none_or_blank
 @db
 # 分页查询方法
 def page(params: schemas.SysMenu, page: PageData, db):
-    offset = (page.page_num - 1) * page.page_size
+    offset = (page.page_index - 1) * page.page_size
     total_count = db.query(func.count(SysMenu.id)).query_by(build_query(params)).scalar()
     items = (db.query(SysMenu)
              .query_by(build_query(params))
-             .order_by(desc(SysMenu.create_time))
              .offset(offset)
              .limit(page.page_size)
              .all())
-    return PageData(list=items, total=total_count, pageNum=page.page_num, pageSize=page.page_size)
+    return PageData(list=items, total=total_count, page_index=page.page_index, pageSize=page.page_size)
 
 
 @db
@@ -42,6 +44,7 @@ def build_query(params: schemas.SysMenu):
             .filter_if(not_none_or_blank(params.menu_title), SysMenu.menu_title.like(f"%{params.menu_title}%"))
             .filter_if(not_none_or_blank(params.path), SysMenu.path.like(f"%{params.path}%"))
             .filter_if(not_none_or_blank(params.component), SysMenu.component.like(f"%{params.component}%"))
+            .order_by(asc(SysMenu.order_num))
         )
 
     return warp
@@ -51,8 +54,20 @@ def build_query(params: schemas.SysMenu):
 def get_by_id(id, db):
     return db.query(SysMenu).filter(SysMenu.id == id).first()
 
-@db
-def create(menu, db):
-    model = SysMenu(**menu.dict())
-    db.add(model)
 
+@db
+def create(menu: schemas.SysMenu, db):
+    model = SysMenu(**menu.dict(exclude="children"))
+    db.add(model)
+    return model
+
+
+@db
+def update(menu: schemas.SysMenu, db: Session):
+    db.query(SysMenu).filter(SysMenu.id == menu.id).update(menu.dict(exclude_none=True))
+    return db.query(SysMenu).filter(SysMenu.id == menu.id).first()
+
+
+@db
+def batch_delete(id_list: List[int], db: Session):
+    return db.query(SysMenu).filter(SysMenu.id.in_(id_list)).delete()

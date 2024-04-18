@@ -33,7 +33,7 @@ async def list(
 
 
 @router.get("/page", tags=["menus"], response_model=ResponseData[PageData[SysMenu]])
-async def page(page_num: int = Query(default=1, alias="pageNum"),
+async def page(page_index: int = Query(default=1, alias="pageIndex"),
                page_size: int = Query(default=10, alias="pageSize"),
                parent_id: Optional[int] = Query(default=None, alias="parentId", title="父节点ID"),
                menu_title: Optional[str] = Query(default=None, alias="menuTitle", title="菜单标题"),
@@ -52,7 +52,7 @@ async def page(page_num: int = Query(default=1, alias="pageNum"),
         component=component,
         status=status,
     )
-    data = menu_service.page(query, PageData(page_num=page_num, page_size=page_size))
+    data = menu_service.page(query, PageData(page_index=page_index, page_size=page_size))
     return ResponseData.success(data)
 
 
@@ -87,3 +87,15 @@ async def get_info(id: int):
 @router.post("", tags=['menus'], response_model=ResponseData[SysMenu])
 async def create(menu: SysMenu):
     return ResponseData.success(menu_service.create(menu))
+
+
+@router.put("", tags=['menus'], response_model=ResponseData[SysMenu])
+async def update(config: SysMenu):
+    return ResponseData.success(menu_service.update(config))
+
+
+@router.delete("", tags=['menus'], response_model=ResponseData)
+async def delete(id: str = Query(title="ID")):
+    list = [int(f) for f in id.split(",")]
+    menu_service.batch_delete(list)
+    return ResponseData.success()

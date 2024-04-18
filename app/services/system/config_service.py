@@ -31,5 +31,5 @@ def update(config):
 
 
 @transactional()
-def batch_delete(idList: List[int]):
-    return config_repo.batch_delete(idList)
+def batch_delete(id_list: List[int]):
+    return config_repo.batch_delete(id_list)

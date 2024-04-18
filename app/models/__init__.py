@@ -25,5 +25,5 @@ class PageData(BaseModel, Generic[T]):
 
     list: List[T] = []
     total: int = 0
-    page_num: int = 1
+    page_index: int = 1
     page_size: int = 10

@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, field_serializer, ConfigDict
+from pydantic import BaseModel, field_serializer, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -16,6 +16,7 @@ class BaseModelWithCommonFields(BaseModel):
     create_time: Optional[datetime.datetime] = None
     update_by: Optional[str] = None
     update_time: Optional[datetime.datetime] = None
+    params: dict = Field(default={}, exclude=True)
 
     @field_serializer('create_time')
     def serialize_ct(self, dt: datetime.datetime, _info):
@@ -64,6 +65,7 @@ class SysDept(BaseModelWithCommonFields):
     phone: Optional[str] = None
     email: Optional[str] = None
     status: Optional[str] = None
+    children: Optional[List['SysDept']] = None
 
 
 class SysDictData(BaseModelWithCommonFields):
@@ -120,3 +122,24 @@ class SysRoleMenu(BaseModelWithCommonFields):
 class SysRoleUser(BaseModelWithCommonFields):
     user_id: int = None
     role_id: int = None
+
+
+class DeptMember(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True, populate_by_name=True)
+
+    dept_id: int
+    member_id: List[int]
+
+
+class RoleMember(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True, populate_by_name=True)
+
+    role_id: int
+    member_id: List[int]
+
+
+class RoleMenu(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, from_attributes=True, populate_by_name=True)
+
+    role_id: int
+    menu_id: List[int]

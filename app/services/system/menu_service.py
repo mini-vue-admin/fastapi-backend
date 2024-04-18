@@ -1,3 +1,5 @@
+from typing import List
+
 from middlewares.transactional import transactional
 from models import PageData
 from models.system import schemas
@@ -23,7 +25,7 @@ def list_by_parent_id(parent_id):
 def tree(query: schemas.SysMenu):
     menus = menu_repo.list(query)
     for menu in menus:
-        menu.children = list_by_parent_id(menu.id)
+        menu.children = tree(schemas.SysMenu(parent_id=menu.id))
     return menus
 
 
@@ -34,5 +36,14 @@ def get_by_id(id):
 
 @transactional()
 def create(menu):
-    menu_repo.create(menu)
-    return menu
+    return menu_repo.create(menu)
+
+
+@transactional()
+def update(dict_type: schemas.SysDictType):
+    return menu_repo.update(dict_type)
+
+
+@transactional()
+def batch_delete(id_list: List[int]):
+    return menu_repo.batch_delete(id_list)

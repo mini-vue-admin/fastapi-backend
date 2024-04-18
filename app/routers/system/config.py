@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Query
 
@@ -10,19 +10,38 @@ router = APIRouter()
 
 
 @router.get("/list", tags=["configs"], response_model=ResponseData[List[SysConfig]])
-async def list():
-    query = SysConfig()
+async def list(
+        config_name: Optional[str] = Query(default=None, alias="configName", title="配置名称"),
+        config_type: Optional[str] = Query(default=None, alias="configType", title="配置类型"),
+        config_key: Optional[str] = Query(default=None, alias="configKey", title="配置键名"),
+        config_value: Optional[str] = Query(default=None, alias="configValue", title="配置键值"),
+):
+    query = SysConfig(
+        config_name=config_name,
+        config_type=config_type,
+        config_key=config_key,
+        config_value=config_value,
+    )
     data = config_service.list(query)
     return ResponseData.success(data)
 
 
 @router.get("/page", tags=["configs"], response_model=ResponseData[PageData[SysConfig]])
 async def page(
-        page_num: int = Query(default=1, alias="pageNum"),
+        page_index: int = Query(default=1, alias="pageIndex"),
         page_size: int = Query(default=10, alias="pageSize"),
+        config_name: Optional[str] = Query(default=None, alias="configName", title="配置名称"),
+        config_type: Optional[str] = Query(default=None, alias="configType", title="配置类型"),
+        config_key: Optional[str] = Query(default=None, alias="configKey", title="配置键名"),
+        config_value: Optional[str] = Query(default=None, alias="configValue", title="配置键值"),
 ):
-    query = SysConfig()
-    data = config_service.page(query, PageData(page_num=page_num, page_size=page_size))
+    query = SysConfig(
+        config_name=config_name,
+        config_type=config_type,
+        config_key=config_key,
+        config_value=config_value,
+    )
+    data = config_service.page(query, PageData(page_index=page_index, page_size=page_size))
     return ResponseData.success(data)
 
 
@@ -37,12 +56,12 @@ async def create(config: SysConfig):
 
 
 @router.put("", tags=['configs'], response_model=ResponseData[SysConfig])
-async def create(config: SysConfig):
+async def update(config: SysConfig):
     return ResponseData.success(config_service.update(config))
 
 
-@router.delete("/{id}", tags=['configs'], response_model=ResponseData)
-async def create(id: str):
+@router.delete("", tags=['configs'], response_model=ResponseData)
+async def delete(id: str = Query(title="ID")):
     list = [int(f) for f in id.split(",")]
     config_service.batch_delete(list)
     return ResponseData.success()
