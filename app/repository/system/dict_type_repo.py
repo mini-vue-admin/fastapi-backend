@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 
+from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
@@ -12,12 +13,12 @@ from utils.common import not_none_or_blank
 
 @db
 def get_by_id(id, db):
-    return db.query(SysDictType).filter(SysDictType.id == id).first()
+    return db.query(SysDictType).filter(SysDictType.id == id).one_or_none()
 
 
 @db
 def get_by_dict_type(dict_type, db):
-    return db.query(SysDictType).filter(SysDictType.dict_type == dict_type).first()
+    return db.query(SysDictType).filter(SysDictType.dict_type == dict_type).one_or_none()
 
 
 @db
@@ -28,7 +29,7 @@ def list(params: schemas.SysDictType, db):
 @db
 def page(params: schemas.SysDictType, page: PageData, db):
     offset = (page.page_index - 1) * page.page_size
-    total_count = db.query(func.count(SysDictType.id)).query_by(build_query(params)).scalar()
+    total_count = db.query(func.count(SysDictType.id)).query_by(build_query(params)).undeleted().scalar()
     items = (db.query(SysDictType)
              .query_by(build_query(params))
              .offset(offset)
@@ -58,9 +59,9 @@ def create(dict_type: schemas.SysDictType, db):
 @db
 def update(dict_type: schemas.SysDictType, db: Session):
     db.query(SysDictType).filter(SysDictType.id == dict_type.id).update(dict_type.dict(exclude_none=True))
-    return db.query(SysDictType).filter(SysDictType.id == dict_type.id).first()
+    return db.query(SysDictType).filter(SysDictType.id == dict_type.id).one_or_none()
 
 
 @db
 def batch_delete(id_list: List[int], db: Session):
-    return db.query(SysDictType).filter(SysDictType.id.in_(id_list)).delete()
+    return db.query(SysDictType).filter(SysDictType.id.in_(id_list)).update({'del_flag': DelFlag.DELETED.value})

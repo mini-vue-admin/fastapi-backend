@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func, asc
 from sqlalchemy.orm import Session
 
+from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
@@ -14,7 +15,7 @@ from utils.common import not_none_or_blank
 # 分页查询方法
 def page(params: schemas.SysMenu, page: PageData, db):
     offset = (page.page_index - 1) * page.page_size
-    total_count = db.query(func.count(SysMenu.id)).query_by(build_query(params)).scalar()
+    total_count = db.query(func.count(SysMenu.id)).query_by(build_query(params)).undeleted().scalar()
     items = (db.query(SysMenu)
              .query_by(build_query(params))
              .offset(offset)
@@ -52,7 +53,7 @@ def build_query(params: schemas.SysMenu):
 
 @db
 def get_by_id(id, db):
-    return db.query(SysMenu).filter(SysMenu.id == id).first()
+    return db.query(SysMenu).filter(SysMenu.id == id).one_or_none()
 
 
 @db
@@ -65,14 +66,14 @@ def create(menu: schemas.SysMenu, db):
 @db
 def update(menu: schemas.SysMenu, db: Session):
     db.query(SysMenu).filter(SysMenu.id == menu.id).update(menu.dict(exclude_none=True))
-    return db.query(SysMenu).filter(SysMenu.id == menu.id).first()
+    return db.query(SysMenu).filter(SysMenu.id == menu.id).one_or_none()
 
 
 @db
 def batch_delete(id_list: List[int], db: Session):
-    return db.query(SysMenu).filter(SysMenu.id.in_(id_list)).delete()
+    return db.query(SysMenu).filter(SysMenu.id.in_(id_list)).update({'del_flag': DelFlag.DELETED.value})
 
 
 @db
 def delete(id, db):
-    return db.query(SysMenu).filter(SysMenu.id == id).delete()
+    return db.query(SysMenu).filter(SysMenu.id == id).update({'del_flag': DelFlag.DELETED.value})

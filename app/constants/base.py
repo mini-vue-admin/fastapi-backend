@@ -1,5 +1,8 @@
 from enum import Enum
 
+# 部门和菜单的根节点ID
+ROOT_PARENT_ID = -1
+
 
 class DelFlag(Enum):
     """

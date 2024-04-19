@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 
+from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
@@ -12,7 +13,7 @@ from utils.common import not_none_or_blank
 
 @db
 def get_by_id(id, db):
-    return db.query(SysConfig).filter(SysConfig.id == id).first()
+    return db.query(SysConfig).filter(SysConfig.id == id).one_or_none()
 
 
 @db
@@ -23,7 +24,7 @@ def list(params: schemas.SysConfig, db):
 @db
 def page(params: schemas.SysConfig, page: PageData, db):
     offset = (page.page_index - 1) * page.page_size
-    total_count = db.query(func.count(SysConfig.id)).query_by(build_query(params)).scalar()
+    total_count = db.query(func.count(SysConfig.id)).query_by(build_query(params)).undeleted().scalar()
     items = (db.query(SysConfig)
              .query_by(build_query(params))
              .offset(offset)
@@ -56,14 +57,14 @@ def create(config, db):
 @db
 def update(config: schemas.SysConfig, db: Session):
     db.query(SysConfig).filter(SysConfig.id == config.id).update(config.dict(exclude_none=True))
-    return db.query(SysConfig).filter(SysConfig.id == config.id).first()
+    return db.query(SysConfig).filter(SysConfig.id == config.id).one_or_none()
 
 
 @db
 def batch_delete(id_list: List[int], db: Session):
-    return db.query(SysConfig).filter(SysConfig.id.in_(id_list)).delete()
+    return db.query(SysConfig).filter(SysConfig.id.in_(id_list)).update({'del_flag': DelFlag.DELETED.value})
 
 
 @db
 def get_by_config_key(config_key, db):
-    return db.query(SysConfig).filter(SysConfig.config_key == config_key).first()
+    return db.query(SysConfig).filter(SysConfig.config_key == config_key).one_or_none()

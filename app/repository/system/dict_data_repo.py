@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func, asc
 from sqlalchemy.orm import Session
 
+from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
@@ -12,17 +13,17 @@ from utils.common import not_none_or_blank
 
 @db
 def get_by_id(id, db):
-    return db.query(SysDictData).filter(SysDictData.id == id).first()
+    return db.query(SysDictData).filter(SysDictData.id == id).one_or_none()
 
 
 @db
 def get_by_type_and_value(type, value, db):
-    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_value == value).first()
+    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_value == value).one_or_none()
 
 
 @db
 def get_by_type_and_label(type, label, db):
-    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_label == label).first()
+    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_label == label).one_or_none()
 
 
 @db
@@ -38,7 +39,7 @@ def list(params: schemas.SysDictData, db):
 @db
 def page(params: schemas.SysDictData, page: PageData, db):
     offset = (page.page_index - 1) * page.page_size
-    total_count = db.query(func.count(SysDictData.id)).query_by(build_query(params)).scalar()
+    total_count = db.query(func.count(SysDictData.id)).query_by(build_query(params)).undeleted().scalar()
     items = (db.query(SysDictData)
              .query_by(build_query(params))
              .offset(offset)
@@ -69,14 +70,14 @@ def create(dict_data: schemas.SysDictData, db):
 @db
 def update(dict_data: schemas.SysDictData, db: Session):
     db.query(SysDictData).filter(SysDictData.id == dict_data.id).update(dict_data.dict(exclude_none=True))
-    return db.query(SysDictData).filter(SysDictData.id == dict_data.id).first()
+    return db.query(SysDictData).filter(SysDictData.id == dict_data.id).one_or_none()
 
 
 @db
 def batch_delete(id_list: List[int], db: Session):
-    return db.query(SysDictData).filter(SysDictData.id.in_(id_list)).delete()
+    return db.query(SysDictData).filter(SysDictData.id.in_(id_list)).update({'del_flag': DelFlag.DELETED.value})
 
 
 @db
 def delete_by_dict_type(dict_type, db):
-    return db.query(SysDictData).filter(SysDictData.dict_type == dict_type).delete()
+    return db.query(SysDictData).filter(SysDictData.dict_type == dict_type).update({'del_flag': DelFlag.DELETED.value})

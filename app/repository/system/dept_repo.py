@@ -3,6 +3,7 @@ from typing import List
 from sqlalchemy import func, asc
 from sqlalchemy.orm import Session
 
+from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
@@ -12,7 +13,7 @@ from utils.common import not_none_or_blank
 
 @db
 def get_by_id(id, db):
-    return db.query(SysDept).filter(SysDept.id == id).first()
+    return db.query(SysDept).filter(SysDept.id == id).one_or_none()
 
 
 @db
@@ -28,7 +29,7 @@ def list_by_parent_id(parent_id, db):
 @db
 def page(params: schemas.SysDept, page: PageData, db):
     offset = (page.page_index - 1) * page.page_size
-    total_count = db.query(func.count(SysDept.id)).query_by(build_query(params)).scalar()
+    total_count = db.query(func.count(SysDept.id)).query_by(build_query(params)).undeleted().scalar()
     items = (db.query(SysDept)
              .query_by(build_query(params))
              .offset(offset)
@@ -58,12 +59,12 @@ def create(dept, db):
 @db
 def update(dept: schemas.SysDept, db: Session):
     db.query(SysDept).filter(SysDept.id == dept.id).update(dept.dict(exclude_none=True))
-    return db.query(SysDept).filter(SysDept.id == dept.id).first()
+    return db.query(SysDept).filter(SysDept.id == dept.id).one_or_none()
 
 
 @db
 def batch_delete(id_list: List[int], db: Session):
-    return db.query(SysDept).filter(SysDept.id.in_(id_list)).delete()
+    return db.query(SysDept).filter(SysDept.id.in_(id_list)).update({'del_flag': DelFlag.DELETED.value})
 
 
 @db
