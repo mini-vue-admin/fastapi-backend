@@ -16,6 +16,11 @@ def get_by_id(id, db):
 
 
 @db
+def get_by_role_key(role_key, db):
+    return db.query(SysMenu).filter(SysRole.role_key == role_key).first()
+
+
+@db
 def list(params: schemas.SysRole, db):
     return db.query(SysRole).query_by(build_query(params)).all()
 
@@ -54,6 +59,11 @@ def create(role, db):
 def update(role: schemas.SysRole, db: Session):
     db.query(SysRole).filter(SysRole.id == role.id).update(role.dict(exclude_none=True))
     return db.query(SysRole).filter(SysRole.id == role.id).first()
+
+
+@db
+def delete(id, db):
+    return db.query(SysRole).filter(SysRole.id == id).delete()
 
 
 @db

@@ -16,6 +16,11 @@ def get_by_id(id, db):
 
 
 @db
+def get_by_username(username, db):
+    return db.query(SysUser).filter(SysUser.username == username).first()
+
+
+@db
 def list(params: schemas.SysUser, db):
     return db.query(SysUser).query_by(build_query(params)).all()
 
@@ -73,3 +78,8 @@ def update(user: schemas.SysUser, db: Session):
 @db
 def batch_delete(id_list: List[int], db: Session):
     return db.query(SysUser).filter(SysUser.id.in_(id_list)).delete()
+
+
+@db
+def update_pwd(uid, pwd, db):
+    return db.query(SysUser).filter(SysUser.id == uid).update({'password': pwd})

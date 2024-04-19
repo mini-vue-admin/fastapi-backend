@@ -9,10 +9,11 @@ from starlette.middleware.gzip import GZipMiddleware
 from middlewares import oauth
 from middlewares.config import Settings, get_settings
 from middlewares.exception_handlers import request_validation_exception_handler, http_exception_handler, \
-    unhandled_exception_handler
+    unhandled_exception_handler, business_exception_handler
 from middlewares.log_request import log_request_middleware
 from models import ResponseData
 from routers import system
+from utils import BusinessException
 
 app = FastAPI(root_path="/api/v1")
 
@@ -44,6 +45,7 @@ async def healthy():
 
 
 app.middleware("http")(log_request_middleware)
+app.add_exception_handler(BusinessException, business_exception_handler)
 app.add_exception_handler(RequestValidationError, request_validation_exception_handler)
 app.add_exception_handler(HTTPException, http_exception_handler)
 app.add_exception_handler(Exception, unhandled_exception_handler)

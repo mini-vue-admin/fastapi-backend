@@ -16,6 +16,11 @@ def get_by_id(id, db):
 
 
 @db
+def get_by_dict_type(dict_type, db):
+    return db.query(SysDictType).filter(SysDictType.dict_type == dict_type).first()
+
+
+@db
 def list(params: schemas.SysDictType, db):
     return db.query(SysDictType).query_by(build_query(params)).all()
 

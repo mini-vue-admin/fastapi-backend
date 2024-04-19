@@ -1,6 +1,7 @@
+import json
 from typing import Union, TypeVar, Generic, List
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 T = TypeVar('T')
@@ -8,12 +9,12 @@ T = TypeVar('T')
 
 class ResponseData(BaseModel, Generic[T]):
     code: int
-    msg: Union[str, None] = None
-    data: Union[T, None] = None
+    msg: Union[str, None] = Field(default=None)
+    data: Union[T, None] = Field(default=None)
 
     @staticmethod
     def success(data: Union[T, None] = None):
-        return ResponseData(code=0, msg="success", data=data)
+        return ResponseData[T](code=0, msg="success", data=data)
 
     @staticmethod
     def fail(code: int = 500, msg: str = "Operation failed"):

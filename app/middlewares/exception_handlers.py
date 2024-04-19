@@ -1,18 +1,36 @@
 import sys
-
+import traceback
 from typing import Union
 
 from fastapi import Request
-from fastapi.exceptions import RequestValidationError, HTTPException
+from fastapi.encoders import jsonable_encoder
 from fastapi.exception_handlers import http_exception_handler as _http_exception_handler
 from fastapi.exception_handlers import (
     request_validation_exception_handler as _request_validation_exception_handler,
 )
+from fastapi.exceptions import RequestValidationError, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.responses import PlainTextResponse
 from fastapi.responses import Response
 
 from logger import logger
+from models import ResponseData
+from utils import BusinessException
+
+
+async def business_exception_handler(request: Request, exc: BusinessException) -> JSONResponse:
+    logger.debug("Our custom business_exception_handler was called")
+    traceback.print_tb(exc.__traceback__)
+
+    host = getattr(getattr(request, "client", None), "host", None)
+    port = getattr(getattr(request, "client", None), "port", None)
+    url = f"{request.url.path}?{request.query_params}" if request.query_params else request.url.path
+
+    logger.error(
+        f'{host}:{port} - "{request.method} {url}" - business exception: {exc}'
+    )
+    return JSONResponse(jsonable_encoder(ResponseData.fail(msg=exc.__str__())))
+
 
 async def request_validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """

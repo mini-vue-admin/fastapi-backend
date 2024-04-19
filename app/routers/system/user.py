@@ -70,6 +70,12 @@ async def get_info(id: int):
     return ResponseData.success(user_service.get_by_id(id))
 
 
+@router.post("/{id}/resetPassword", tags=["users"], response_model=ResponseData)
+async def reset_pwd(id: int):
+    user_service.reset_pwd(id)
+    return ResponseData.success()
+
+
 @router.post("", tags=['users'], response_model=ResponseData[SysUser])
 async def create(user: SysUser):
     return ResponseData.success(user_service.create(user))

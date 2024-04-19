@@ -73,4 +73,9 @@ def add_member(dept_id, uid, db):
 
 @db
 def del_member(dept_id, uid, db):
-    db.query(SysUser).filter(SysUser.id == uid).update({"dept_id": None})
+    db.query(SysUser).filter(SysUser.id == uid).filter(SysUser.dept_id == dept_id).update({"dept_id": None})
+
+
+@db
+def batch_del_member_by_dept(id_list, db):
+    db.query(SysUser).filter(SysUser.dept_id.in_(id_list)).update({"dept_id": None})

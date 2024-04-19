@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import Integer, String, DateTime, Boolean
-from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import mapped_column, deferred
 
 from constants.base import DelFlag
 from middlewares.database import Base

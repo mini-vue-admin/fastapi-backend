@@ -62,3 +62,8 @@ def update(config: schemas.SysConfig, db: Session):
 @db
 def batch_delete(id_list: List[int], db: Session):
     return db.query(SysConfig).filter(SysConfig.id.in_(id_list)).delete()
+
+
+@db
+def get_by_config_key(config_key, db):
+    return db.query(SysConfig).filter(SysConfig.config_key == config_key).first()

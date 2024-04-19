@@ -3,8 +3,10 @@ from typing import List
 from middlewares.transactional import transactional
 from models import PageData
 from models.system import schemas
-from models.system.schemas import DeptMember
+from models.system.schemas import DeptMember, SysDept
 from repository.system import dept_repo
+from utils import BusinessException
+from utils.common import is_none_or_blank
 
 
 @transactional()
@@ -35,18 +37,42 @@ def tree(query):
     return depts
 
 
+def __validate__(dept):
+    if dept.id == dept.parent_id:
+        raise BusinessException("禁止设置自身为父级节点")
+    if dept.id is not None and dept.parent_id != SysDept.ROOT_PARENT_ID:
+        parent = dept_repo.get_by_id(dept.parent_id)
+        if parent is not None and parent.ancestors.split(",").contains(str(dept.id)):
+            raise BusinessException("禁止设置当前节点的子节点为父节点")
+
+
+def __resolve_ancestor__(dept):
+    if dept.parent_id == SysDept.ROOT_PARENT_ID:
+        return ""
+    ancestors = dept_repo.get_by_id(dept.parent_id).ancestors
+    if is_none_or_blank(ancestors):
+        return str(dept.parent_id)
+    else:
+        return f"{ancestors},{dept.parent_id}"
+
+
 @transactional()
 def create(dept):
+    __validate__(dept)
+    __resolve_ancestor__(dept)
     return dept_repo.create(dept)
 
 
 @transactional()
 def update(dept):
+    __validate__(dept)
+    __resolve_ancestor__(dept)
     return dept_repo.update(dept)
 
 
 @transactional()
 def batch_delete(id_list: List[int]):
+    dept_repo.batch_del_member_by_dept(id_list)
     return dept_repo.batch_delete(id_list)
 
 

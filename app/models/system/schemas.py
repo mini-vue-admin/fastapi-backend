@@ -37,7 +37,7 @@ class SysUser(BaseModelWithCommonFields):
     phonenumber: Optional[str] = None
     sex: Optional[str] = None
     avatar: Optional[str] = None
-    password: Optional[str] = None
+    password: Optional[str] = Field(None, exclude=True)
     status: Optional[str] = None
     login_ip: Optional[str] = None
     login_date: Optional[datetime.datetime] = None
@@ -57,6 +57,8 @@ class SysConfig(BaseModelWithCommonFields):
 
 
 class SysDept(BaseModelWithCommonFields):
+    ROOT_PARENT_ID: int = Field(-1, init=False)
+
     parent_id: Optional[int] = None
     ancestors: Optional[str] = None
     dept_name: Optional[str] = None
@@ -87,6 +89,8 @@ class SysDictType(BaseModelWithCommonFields):
 
 
 class SysMenu(BaseModelWithCommonFields):
+    ROOT_PARENT_ID: int = Field(-1, init=False)
+
     menu_name: Optional[str] = None
     menu_title: Optional[str] = None
     parent_id: Optional[int] = None

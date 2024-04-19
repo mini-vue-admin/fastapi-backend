@@ -1,6 +1,6 @@
 from typing import List
 
-from sqlalchemy import func, desc, asc
+from sqlalchemy import func, asc
 from sqlalchemy.orm import Session
 
 from middlewares.transactional import db
@@ -13,6 +13,21 @@ from utils.common import not_none_or_blank
 @db
 def get_by_id(id, db):
     return db.query(SysDictData).filter(SysDictData.id == id).first()
+
+
+@db
+def get_by_type_and_value(type, value, db):
+    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_value == value).first()
+
+
+@db
+def get_by_type_and_label(type, label, db):
+    return db.query(SysDictData).filter(SysDictData.dict_type == type).filter(SysDictData.dict_label == label).first()
+
+
+@db
+def list_by_type(dict_type, db):
+    return db.query(SysDictData).filter(SysDictData.dict_type == dict_type).order_by(asc(SysDictData.order_num)).all()
 
 
 @db
@@ -60,3 +75,8 @@ def update(dict_data: schemas.SysDictData, db: Session):
 @db
 def batch_delete(id_list: List[int], db: Session):
     return db.query(SysDictData).filter(SysDictData.id.in_(id_list)).delete()
+
+
+@db
+def delete_by_dict_type(dict_type, db):
+    return db.query(SysDictData).filter(SysDictData.dict_type == dict_type).delete()
