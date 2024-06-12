@@ -1,7 +1,8 @@
 from typing import Optional, List
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
+from middlewares.oauth import get_current_active_user, PrincipleUser
 from models import ResponseData, PageData
 from models.system.schemas import SysUser
 from services.system import user_service
@@ -63,6 +64,11 @@ async def page(page_index: int = Query(default=1, alias="pageIndex"),
 
     data = user_service.page(query, PageData(page_index=page_index, page_size=page_size))
     return ResponseData.success(data)
+
+
+@router.get("/own", tags=["users"], response_model=ResponseData[PrincipleUser])
+async def get_self(principle: PrincipleUser = Depends(get_current_active_user)):
+    return ResponseData.success(principle)
 
 
 @router.get("/{id}", tags=["users"], response_model=ResponseData[SysUser])

@@ -13,6 +13,11 @@ def get_by_id(id):
 
 
 @transactional()
+def get_by_userid(user_id):
+    return role_repo.get_by_userid(user_id)
+
+
+@transactional()
 def list(query):
     return role_repo.list(query)
 

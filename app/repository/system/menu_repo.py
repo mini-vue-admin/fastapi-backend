@@ -7,7 +7,7 @@ from constants.base import DelFlag
 from middlewares.transactional import db
 from models import PageData
 from models.system import schemas
-from models.system.models import SysMenu
+from models.system.models import SysMenu, SysRoleMenu, SysRole
 from utils.common import not_none_or_blank
 
 
@@ -27,6 +27,18 @@ def page(params: schemas.SysMenu, page: PageData, db):
 @db
 def list(params, db):
     return db.query(SysMenu).query_by(build_query(params)).all()
+
+
+@db
+def list_by_roles(params, db):
+    return (
+        db.query(SysMenu)
+        .join(SysRoleMenu, SysRoleMenu.menu_id == SysMenu.id)
+        .join(SysRole, SysRoleMenu.role_id == SysRole.id)
+        .filter(SysRole.role_key.in_(params.params['roles']))
+        .query_by(build_query(params))
+        .all()
+    )
 
 
 @db

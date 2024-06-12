@@ -51,10 +51,11 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> Union[
     This function will be called when a HTTPException is explicitly raised.
     """
     logger.debug("Our custom http_exception_handler was called")
-    return await _http_exception_handler(request, exc)
+    logger.exception(exc)
+    return JSONResponse(jsonable_encoder(ResponseData.fail(msg=exc.__str__())), status_code=exc.status_code)
 
 
-async def unhandled_exception_handler(request: Request, exc: Exception) -> PlainTextResponse:
+async def unhandled_exception_handler(request: Request, exc: Exception) -> Union[JSONResponse, Response]:
     """
     This middleware will log all unhandled exceptions.
     Unhandled exceptions are all exceptions that are not HTTPExceptions or RequestValidationErrors.
@@ -68,4 +69,4 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> Plain
     logger.error(
         f'{host}:{port} - "{request.method} {url}" 500 Internal Server Error <{exception_name}: {exception_value}>'
     )
-    return PlainTextResponse(str(exc), status_code=500)
+    return JSONResponse(jsonable_encoder(ResponseData.fail(msg=exc.__str__())), status_code=500)

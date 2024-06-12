@@ -11,6 +11,7 @@ from middlewares.config import Settings, get_settings
 from middlewares.exception_handlers import request_validation_exception_handler, http_exception_handler, \
     unhandled_exception_handler, business_exception_handler
 from middlewares.log_request import log_request_middleware
+from middlewares.oauth import get_current_active_user
 from models import ResponseData
 from routers import system
 from utils import BusinessException
@@ -31,7 +32,7 @@ app.add_middleware(
 
 # routers
 app.include_router(oauth.router)
-app.include_router(system.router, prefix="/system")
+app.include_router(system.router, prefix="/system", dependencies=[Depends(get_current_active_user)])
 
 
 @app.get("/info", response_model=ResponseData[Settings])

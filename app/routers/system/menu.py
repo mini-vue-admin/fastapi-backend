@@ -1,7 +1,8 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 
+from middlewares.oauth import get_current_active_user, PrincipleUser
 from models import ResponseData, PageData
 from models.system.schemas import SysMenu
 from services.system import menu_service
@@ -65,6 +66,7 @@ async def tree(
         path: Optional[str] = Query(default=None, title="菜单路径"),
         component: Optional[str] = Query(default=None, title="组件名称"),
         status: Optional[str] = Query(default=None, title="状态"),
+        principle: PrincipleUser = Depends(get_current_active_user),
 ):
     query = SysMenu(
         parent_id=parent_id,
@@ -75,7 +77,7 @@ async def tree(
         component=component,
         status=status,
     )
-    data = menu_service.tree(query)
+    data = menu_service.tree(query, principle)
     return ResponseData.success(data)
 
 

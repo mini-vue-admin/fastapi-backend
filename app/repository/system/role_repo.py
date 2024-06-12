@@ -156,3 +156,10 @@ def build_member_query(params: SysUser):
 def list_menu(role_id, db):
     return db.query(SysMenu).join(SysRoleMenu, SysMenu.id == SysRoleMenu.menu_id).filter(
         SysRoleMenu.role_id == role_id).order_by(asc(SysMenu.order_num)).all()
+
+
+@db
+def get_by_userid(user_id, db):
+    return db.query(SysRole).join(SysRoleUser, SysRoleUser.role_id == SysRole.id, isouter=True).filter(
+        SysRoleUser.user_id == user_id
+    ).all()

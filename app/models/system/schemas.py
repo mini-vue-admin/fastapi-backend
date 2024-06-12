@@ -4,6 +4,8 @@ from typing import Optional, List
 from pydantic import BaseModel, field_serializer, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
+from constants.base import Status
+
 
 # 定义一个包含公共字段的基类
 class BaseModelWithCommonFields(BaseModel):
@@ -38,7 +40,7 @@ class SysUser(BaseModelWithCommonFields):
     sex: Optional[str] = None
     avatar: Optional[str] = None
     password: Optional[str] = Field(None, exclude=True)
-    status: Optional[str] = None
+    status: Optional[str] = Field(Status.ENABLED.value)
     login_ip: Optional[str] = None
     login_date: Optional[datetime.datetime] = None
 
@@ -46,6 +48,15 @@ class SysUser(BaseModelWithCommonFields):
     def serialize_ld(self, dt: datetime.datetime, _info):
         if dt:
             return dt.strftime('%Y-%m-%d %H:%M:%S')
+
+    @classmethod
+    def anonymous(cls):
+        return SysUser(
+            id=-1,
+            username="anonymous",
+            nickname="anonymous",
+            status=Status.ENABLED.value,
+        )
 
 
 class SysConfig(BaseModelWithCommonFields):

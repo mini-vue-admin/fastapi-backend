@@ -1,5 +1,6 @@
 from typing import List
 
+from middlewares.oauth import PrincipleUser
 from middlewares.transactional import transactional
 from models import PageData
 from models.system import schemas
@@ -23,11 +24,20 @@ def list_by_parent_id(parent_id):
 
 
 @transactional()
-def tree(query: schemas.SysMenu):
-    menus = menu_repo.list(query)
-    for menu in menus:
-        menu.children = tree(schemas.SysMenu(parent_id=menu.id))
-    return menus
+def tree(query: schemas.SysMenu, principle: PrincipleUser):
+    if principle.is_admin():
+        menus = menu_repo.list(query)
+        for menu in menus:
+            menu.children = tree(schemas.SysMenu(parent_id=menu.id), principle)
+        return menus
+    else:
+        if query.params is None:
+            query.params = dict()
+        query.params['roles'] = principle.roles
+        menus = menu_repo.list_by_roles(query)
+        for menu in menus:
+            menu.children = tree(schemas.SysMenu(parent_id=menu.id), principle)
+        return menus
 
 
 @transactional()

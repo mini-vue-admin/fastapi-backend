@@ -15,3 +15,7 @@ class DelFlag(Enum):
 class Status(Enum):
     ENABLED = 0
     DISABLED = 1
+
+
+class SystemRoleKey(Enum):
+    ADMIN = "admin"

@@ -8,15 +8,22 @@ from repository.system import user_repo, role_repo, config_repo
 from utils import BusinessException
 
 
-# TODO
+@transactional()
 def authenticate_user(username, password, ) -> SysUser:
-    pass
+    user = user_repo.get_by_username(username)
+    if (user.password == password):
+        return user
+    else:
+        raise BusinessException(f'用户登录失败：{username}')
 
 
 @transactional()
 def get_by_id(id):
     return user_repo.get_by_id(id)
 
+@transactional()
+def get_by_username(username):
+    return user_repo.get_by_username(username)
 
 @transactional()
 def list(query):
