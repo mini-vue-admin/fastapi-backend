@@ -43,7 +43,7 @@ def __validate__(dept):
         raise BusinessException("禁止设置自身为父级节点")
     if dept.id is not None and dept.parent_id != ROOT_PARENT_ID:
         parent = dept_repo.get_by_id(dept.parent_id)
-        if parent is not None and parent.ancestors.split(",").contains(str(dept.id)):
+        if parent is not None and str(dept.id) in parent.ancestors.split(","):
             raise BusinessException("禁止设置当前节点的子节点为父节点")
 
 
